@@ -1,0 +1,7 @@
+### Starting build.
+# Target: myocamlbuild, tags: { link, native, ocaml, package(ocamlbuildcpp), program }
+ocamlfind ocamlopt -package unix -package ocamlbuild -linkpkg -package ocamlbuildcpp myocamlbuild.ml /usr/lib/ocaml/ocamlbuild/ocamlbuild.cmx -o myocamlbuild
++ ocamlfind ocamlopt -package unix -package ocamlbuild -linkpkg -package ocamlbuildcpp myocamlbuild.ml /usr/lib/ocaml/ocamlbuild/ocamlbuild.cmx -o myocamlbuild
+/bin/sh: 1: ocamlfind: not found
+Command exited with code 127.
+# Compilation unsuccessful.
