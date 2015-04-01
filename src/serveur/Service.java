@@ -52,10 +52,14 @@ public class Service extends Thread {
 			while (true) {
 				commande = in.readLine();
 				param = commande.split("/");
+				if(param[0].equals("EXIT")){
+					client.close();
+					return;
+				}
 				if(param[0].equals("CONNECT")){
 					break;
 				}
-				out.println("Commande Invalide. Retapez une commande pour vous connecter");
+				out.println("Commande Invalide. Entrez une commande pour vous connecter ou vous déconnecter");
 				out.flush();
 			}
 
