@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,24 +19,27 @@ public class Server extends Thread{
 	private ServerSocket cAudio;
 	private Jam j;
 	private int port;
-	private int portA;
+	private int portA = 2015;
+	private int timeout = 1000;  // en millisecondes. type a changer plus tard si necessaire
+	private int MAX = 4;
+	
 	public static ArrayList<PrintStream> out;
 	public static ArrayList<PrintStream> outAudio;
-	public String ficCompte;
 	public HashMap<String, String> db;
 
-	public Server() throws IOException{
+	public Server(int max, int timeout, int portAudio) throws IOException{
+		MAX = max;
+		this.timeout = timeout;
+		portA = portAudio;
 		out = new ArrayList<PrintStream>();
 		outAudio = new ArrayList<PrintStream>();
-		j = new Jam(10);
+		j = new Jam(MAX);
 		port = 2013;
-		portA = 2015;
-		ficCompte = "/users/nfs/Etu2/3100192/workspace/Network_Musical_Jammin/CompteUtil";
 		db = new HashMap<String,String>();
 	}
 
 
-	/**
+	/**	
 	 * En cas de bug : 
 	 * lsof -i:2013
 	 * kill pid
@@ -47,6 +51,8 @@ public class Server extends Thread{
 			serv.setReuseAddress(true);
 			serv.bind(new InetSocketAddress(port));
 			cAudio = new ServerSocket(portA);
+			cAudio.setReuseAddress(true);
+			cAudio.bind(new InetSocketAddress(portA));
 			System.out.println("Récupération de la base de donnée");
 			BufferedReader br = null;
 			try {
@@ -93,9 +99,14 @@ public class Server extends Thread{
 	public Jam getJam(){
 		return j;
 	}
+	
+	public int getTimeout() {
+		return timeout;
+	}
 
-	public String getFicCompte(){
-		return ficCompte;
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
 	}
 
 	public synchronized boolean login(String user, String pw){
