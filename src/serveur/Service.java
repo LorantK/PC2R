@@ -69,7 +69,7 @@ public class Service extends Thread {
 					out.println("ERROR/Nombre d'arguments");
 					out.flush();
 				}
-				
+
 				if(param[0].equals("REGISTER")){
 					if(param.length != 3){
 						out.println("ERROR/Nombre d'arguments");
@@ -115,13 +115,13 @@ public class Service extends Thread {
 			Canalaudio = serv.getcAudio().accept();
 			jamConnected = true;
 			ServiceAudio s = new ServiceAudio(Canalaudio, nomClient, serv);
-			
+
 			out.println("AUDIO_OK");
 			out.flush();
 
 			gestionJam();
 			chat();
-			
+
 		} catch (IOException e) {
 		}
 	}
@@ -148,7 +148,7 @@ public class Service extends Thread {
 					if(proprietaire){
 						if(param.length == 3) {
 							serv.getJam().setStyle(param[1]);
-							serv.getJam().setStyle(param[2]);
+							serv.getJam().setTempo(param[2]);
 							for (int i = 0; i < serv.out.size(); i++) {
 								serv.out.get(i)
 								.println("BROADCAST Parametres JAM modifie. Nouveaux parametres Style/tempo : " +   serv.getJam().getStyle() + " "
@@ -164,6 +164,7 @@ public class Service extends Thread {
 						.println("LISTEN/" + nomClient + "/"+param[1]);
 						serv.out.get(i).flush();
 					}
+					break;
 				default:
 					out.println("ERROR/Commande Invalide");
 					out.flush();
@@ -208,18 +209,18 @@ public class Service extends Thread {
 	public synchronized void gestionJam(){
 		String commande;
 		String [] param;
-		try{
-			synchronized (this) {
-				if (serv.getJam().getNbConnecte() < serv.getJam()
-						.getMax()) {
-					serv.getJam().addConnecte();
-					if (serv.getJam().getNbConnecte() == 1) {
+		//try{
+		synchronized (this) {
+			if (serv.getJam().getNbConnecte() < serv.getJam()
+					.getMax()) {
+				serv.getJam().addConnecte();
+				if (serv.getJam().getNbConnecte() == 1) {
 
-						out.println("EMPTY_SESSION");
-						out.flush();
-						proprietaire = true;
-						
-						while(true){
+					out.println("EMPTY_SESSION");
+					out.flush();
+					proprietaire = true;
+
+					/*while(true){
 							commande = in.readLine();
 							if(commande == null){
 								disconnectUser();
@@ -241,22 +242,23 @@ public class Service extends Thread {
 
 						out.println("ACK_OPTS");
 						out.flush();
-					} else {
-						out.println("CURRENT_SESSION/"
-								+ serv.getJam().getStyle() + "/"
-								+ serv.getJam().getTempo() + "/"
-								+ serv.getJam().getNbConnecte() + "/");
-					}
+					 */
 				} else {
-					out.println("FULL_SESSION");
-					out.flush();
-
-					fullSession = true;
+					out.println("CURRENT_SESSION/"
+							+ serv.getJam().getStyle() + "/"
+							+ serv.getJam().getTempo() + "/"
+							+ serv.getJam().getNbConnecte() + "/");
 				}
+			} else {
+				out.println("FULL_SESSION");
+				out.flush();
+
+				fullSession = true;
 			}
-		}catch (IOException e) {
-			System.err.println("Probleme Gestion Jam");
 		}
+		//		}catch (IOException e) {
+		//			System.err.println("Probleme Gestion Jam");
+		//		}
 	}
 }
 

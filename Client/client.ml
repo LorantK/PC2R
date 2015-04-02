@@ -14,7 +14,7 @@ let vbox = GPack.vbox
 
 let scroll = GBin.scrolled_window
   ~packing:vbox#add ()
- 
+  
 let textview = GText.view ~packing:scroll#add_with_viewport ()
 
 let entry = GEdit.entry
@@ -48,56 +48,15 @@ class client_maj s p c =
 object(this)
   inherit client s p c
   method connect s sa =
-    try 
-      window#connect#destroy ~callback:GMain.Main.quit;
-      entry#connect#activate ~callback:(fun() -> this#send (s,sa));
-      
-      while true do
-
-(*let si = (my_input_line Unix.stdin)^"\n" in*)
-	let si = "CONNECT/"^c^"\n" in
-	ignore (ThreadUnix.write s si 0 (String.length si));
-
-	(*let so = (my_input_line s) in
-	let l = (Str.split (Str.regexp "/") so) in
-	match (List.hd l) with 
-	|"ERROR" -> begin Printf.printf "%s\n" so; flush stdout end
-	|"EXIT" -> raise Fin
-	|"WELCOME" -> 
-	  begin
-	   Printf.printf "%s\n" so; 
-	    flush stdout;
-	    let so = (my_input_line s) in
-	    let l = (Str.split (Str.regexp "/") so) in
-	    match (List.hd l) with
-	    |"AUDIO_PORT" -> 
-	      let port = (List.hd (List.tl l)) in
-	      let sock = ThreadUnix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
-	      let host = Unix.gethostbyname server in
-	      let h_addr = host.Unix.h_addr_list.(0) in
-	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
-	      Unix.connect sock sock_addr;
-	      let so = (my_input_line s) in
-	      Printf.printf "%s\n" so; 
-	      flush stdout;
-	      let so = (my_input_line s) in
-	      Printf.printf "%s\n" so; 
-	      flush stdout;  
-	*)    
-	      (* let t2 = Thread.create this#send (s,sa) in *)
-	      let t1 = Thread.create this#receive (s,sa) in
-	      window#show();
-	      GMain.Main.main ();
-	      Thread.join t1;
-	      (* Thread.join t2;*)	     
-	    (*  Unix.close sock;
-	      raise Fin
-	    |_->raise Fin
-	  end
-	|_ -> raise Fin*)
-      done
-    with Fin -> ()
-
+    window#connect#destroy ~callback:GMain.Main.quit;
+    entry#connect#activate ~callback:(fun() -> this#send (s,sa));
+    let si = "CONNECT/"^c^"\n" in
+    ignore (ThreadUnix.write s si 0 (String.length si));
+    let t1 = Thread.create this#receive (s,sa) in
+    window#show();
+    GMain.Main.main ();
+    Thread.join t1;
+    
   method receive arg =
     let (s,sa) = arg in
     let hist = ref "" in
@@ -122,20 +81,6 @@ object(this)
 	      let h_addr = host.Unix.h_addr_list.(0) in
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
-	      (*let so = (my_input_line s) in
-	      Printf.printf "%s\n" so; 
-	      flush stdout;
-	      let so = (my_input_line s) in
-	      Printf.printf "%s\n" so; 
-	      flush stdout;  *)
-	      
-	      (* let t2 = Thread.create this#send (s,sa) in *)
-	     (* let t1 = Thread.create this#receive (s,sa) in
-	      window#show();
-	      GMain.Main.main ();
-	      Thread.join t1;*)
-	      (* Thread.join t2;*)	     
-	      (*Unix.close sock; *)
 	    |_->raise Fin
 	  end
 	|"EXITED"-> textview#buffer#set_text !hist;
@@ -144,6 +89,7 @@ object(this)
 	|_->	textview#buffer#set_text !hist;
       done
     with Fin -> Unix.close sock
+
   method send arg =
     let (s,sa) = arg in
     (* while true do
