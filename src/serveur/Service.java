@@ -23,6 +23,7 @@ public class Service extends Thread {
 	private boolean fullSession = false;
 	private boolean proprietaire = false;
 	private boolean spectator = false;
+	private boolean isConnected = false;
 	private boolean jamConnected = false;
 
 	public Service(Socket s, Server serv) {
@@ -45,7 +46,6 @@ public class Service extends Thread {
 		}
 		this.start();
 	}
-
 
 	public void run() {
 		String commande;
@@ -94,6 +94,7 @@ public class Service extends Thread {
 						if(serv.login(param[1], param[2])) {
 							break;
 						}
+
 						else {
 							out.println("ERROR/Login. Mot de passe invalide ou compte inexistant");
 							out.flush();
@@ -105,7 +106,9 @@ public class Service extends Thread {
 			}
 			System.out.println("Nouvelle connexion");
 			start = true;
-			nomClient = param[1];
+
+			if(!checkNameClient(param[1])) // Nom deja utilise
+				return;
 
 			out.println("WELCOME/" + nomClient);
 			out.flush();
@@ -149,9 +152,13 @@ public class Service extends Thread {
 						if(param.length == 3) {
 							serv.getJam().setStyle(param[1]);
 							serv.getJam().setTempo(param[2]);
+
+							out.println("ACK_OPTS");
+							out.flush();
+
 							for (int i = 0; i < serv.out.size(); i++) {
 								serv.out.get(i)
-								.println("BROADCAST Parametres JAM modifie. Nouveaux parametres Style/tempo : " +   serv.getJam().getStyle() + " "
+								.println("BROADCAST Parametres JAM modifies. Nouveaux parametres Style/tempo : " +   serv.getJam().getStyle() + " "
 										+ serv.getJam().getTempo());
 								serv.out.get(i).flush();
 							}
@@ -164,7 +171,7 @@ public class Service extends Thread {
 						.println("LISTEN/" + nomClient + "/"+param[1]);
 						serv.out.get(i).flush();
 					}
-					break;
+					break;	
 				default:
 					out.println("ERROR/Commande Invalide");
 					out.flush();
@@ -173,6 +180,31 @@ public class Service extends Thread {
 			}
 		}catch (IOException e) {
 		}
+	}
+
+
+	/**
+	 * A faire plus tard
+	 */
+	public void help(){
+		out.println("LISTE COMMANDES DISPONIBLES :");
+		if(proprietaire)
+			out.println("SET_OPTIONS/style/tempo : Règle les paramètres de la JAM");
+		out.println("TALK/message/ : ");
+		out.flush();
+	}
+
+	public boolean checkNameClient(String n){
+		if(!serv.checkNameClient(n)){
+			out.println("ACCESSDENIED. Reconnectez-vous avec un autre nom.");
+			out.flush();
+			disconnectUser();
+			return false;
+		}
+		nomClient = n;
+		serv.addConnectedUser(nomClient);
+		isConnected = true;
+		return true;
 	}
 
 	/**
@@ -191,16 +223,19 @@ public class Service extends Thread {
 	public void disconnectUser(){
 		try{
 			serv.disconnectOut(out);
-			for (int i = 0; i < serv.out.size(); i++) {
-				serv.out.get(i).println("EXITED/" + nomClient + "/");
-				serv.out.get(i).flush();
-			}
+			serv.deleteUser(nomClient);
 			client.close();
 			serv.disconnectOut(out);
 			if(jamConnected){
 				serv.getJam().disconnect();
 				Canalaudio.close();
 			}
+			if(isConnected)
+				for (int i = 0; i < serv.out.size(); i++) {
+					serv.out.get(i).println("EXITED/" + nomClient + "/");
+					serv.out.get(i).flush();
+				}
+			
 		}catch(IOException e){
 			System.err.println("Problème dans la déconnexion du client");
 		}
@@ -209,7 +244,6 @@ public class Service extends Thread {
 	public synchronized void gestionJam(){
 		String commande;
 		String [] param;
-		//try{
 		synchronized (this) {
 			if (serv.getJam().getNbConnecte() < serv.getJam()
 					.getMax()) {
@@ -220,29 +254,28 @@ public class Service extends Thread {
 					out.flush();
 					proprietaire = true;
 
-					/*while(true){
-							commande = in.readLine();
-							if(commande == null){
-								disconnectUser();
-								return;
-							}
-							param = commande.split("/");
-							if(param[0].equals("SET_OPTIONS") && param.length == 3){
-								break;
-							}
-							if(param[0].equals("EXIT")){
-								disconnectUser();
-								return;
-							}
-							out.println("Commande Invalide. Paramètres la JAM avec SET_OPTIONS/style/tempo");
-							out.flush();
-						}
-						serv.getJam().setStyle(param[1]);
-						serv.getJam().setTempo(param[2]);
-
-						out.println("ACK_OPTS");
-						out.flush();
-					 */
+					//						while(true){
+					//							commande = in.readLine();
+					//							if(commande == null){
+					//								disconnectUser();
+					//								return;
+					//							}
+					//							param = commande.split("/");
+					//							if(param[0].equals("SET_OPTIONS") && param.length == 3){
+					//								break;
+					//							}
+					//							if(param[0].equals("EXIT")){
+					//								disconnectUser();
+					//								return;
+					//							}
+					//							out.println("Commande Invalide. Paramètres la JAM avec SET_OPTIONS/style/tempo");
+					//							out.flush();
+					//						}
+					//						serv.getJam().setStyle(param[1]);
+					//						serv.getJam().setTempo(param[2]);
+					//
+					//						out.println("ACK_OPTS");
+					//						out.flush();
 				} else {
 					out.println("CURRENT_SESSION/"
 							+ serv.getJam().getStyle() + "/"
@@ -256,9 +289,6 @@ public class Service extends Thread {
 				fullSession = true;
 			}
 		}
-		//		}catch (IOException e) {
-		//			System.err.println("Probleme Gestion Jam");
-		//		}
 	}
 }
 
