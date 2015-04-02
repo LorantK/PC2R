@@ -27,6 +27,7 @@ public class Service extends Thread {
 	public Service(Socket s, Server serv) {
 		this.client = s;
 		this.serv = serv;
+
 		try {
 			in = new DataInputStream(s.getInputStream());
 			out = new PrintStream(s.getOutputStream());
@@ -44,11 +45,14 @@ public class Service extends Thread {
 		this.start();
 	}
 
+
+
 	@Override
 	public void run() {
 		String commande;
 		String[] param;
 		try {
+			boolean cond = true;
 			while (true) {
 				commande = in.readLine();
 				param = commande.split("/");
@@ -59,10 +63,40 @@ public class Service extends Thread {
 				if(param[0].equals("CONNECT")){
 					break;
 				}
-				out.println("Commande Invalide. Entrez une commande pour vous connecter ou vous déconnecter");
-				out.flush();
-			}
+				if(param[0].equals("REGISTER")){
+					if(param.length != 3){
+						out.println("ERROR/Nombre d'arguments");
+						out.flush();
+					}
+					else {
+						if(serv.register(param[1], param[2])){
+							break;
+						}
+						else {
+							out.println("ERROR/Nom d'uilisateur déjà pris");
+							out.flush();
+						}
+					}
+				}
+				if(param[0].equals("LOGIN")){
+					if(param.length != 3){
+						out.println("ERROR/Nombre d'arguments");
+						out.flush();
+					}
+					else {
+						if(serv.login(param[1], param[2])) {
+							break;
+						}
 
+						else {
+							out.println("ERROR/Mot de Passe");
+							out.flush();
+						}
+					}
+					out.println("ERROR/Commande Invalide. Entrez une commande pour vous connecter ou vous déconnecter");
+					out.flush();
+				}
+			}
 			System.out.println("Nouvelle connexion");
 			start = true;
 			nomClient = param[1];
@@ -98,6 +132,12 @@ public class Service extends Thread {
 							if(param[0].equals("SET_OPTIONS") && param.length == 3){
 								break;
 							}
+							if(param[0].equals("EXIT")){
+								serv.getJam().disconnect();
+								client.close();
+								Canalaudio.close();
+								return;
+							}
 							out.println("Commande Invalide. Retapez une commande pour paramètrer la JAM");
 							out.flush();
 						}
@@ -121,34 +161,40 @@ public class Service extends Thread {
 			}
 
 			while(true){
-
 				commande = in.readLine();
 				System.out.println(commande);
 				param = commande.split("/");
 				switch (param[0]) {
 
 				case "EXIT":
-					if (start) {
-						for (int i = 0; i < serv.out.size() - 1; i++) {
-							serv.out.get(i)
-							.println("EXITED/" + nomClient + "/");
-							serv.out.get(i).flush();
-						}
-						serv.getJam().disconnect();
-						client.close();
-						Canalaudio.close();
-						return;
+					//					if (start) {
+					serv.disconnectOut(out);
+					for (int i = 0; i < serv.out.size(); i++) {
+						serv.out.get(i)
+						.println("EXITED/" + nomClient + "/");
+						serv.out.get(i).flush();
 					}
-					break;
+					serv.getJam().disconnect();
+					client.close();
+					Canalaudio.close();
+					return;
+					//}
+
 
 				case "SET_OPTIONS":
 					if(proprietaire){
-						serv.getJam().setStyle(param[1]);
-						serv.getJam().setStyle(param[2]);
-
+						if(param.length == 3) {
+							serv.getJam().setStyle(param[1]);
+							serv.getJam().setStyle(param[2]);
+						}
 					}
 					break;
-
+				case "TALK":
+					for (int i = 0; i < serv.out.size(); i++) {
+						serv.out.get(i)
+						.println("LISTEN/" + nomClient + "/"+param[1]);
+						serv.out.get(i).flush();
+					}
 				default:
 					break;
 				}
@@ -156,4 +202,5 @@ public class Service extends Thread {
 		} catch (IOException e) {
 		}
 	}
+
 }
