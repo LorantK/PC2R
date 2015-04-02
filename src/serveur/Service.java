@@ -45,8 +45,6 @@ public class Service extends Thread {
 		this.start();
 	}
 
-
-
 	@Override
 	public void run() {
 		String commande;
@@ -87,7 +85,6 @@ public class Service extends Thread {
 						if(serv.login(param[1], param[2])) {
 							break;
 						}
-
 						else {
 							out.println("ERROR/Mot de Passe");
 							out.flush();
@@ -108,7 +105,7 @@ public class Service extends Thread {
 
 			Canalaudio = serv.getcAudio().accept();
 			ServiceAudio s = new ServiceAudio(Canalaudio, nomClient, serv);
-
+			
 			out.println("AUDIO_OK");
 			out.flush();
 
