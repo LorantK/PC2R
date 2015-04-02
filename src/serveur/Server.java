@@ -22,7 +22,8 @@ public class Server extends Thread{
 	private int portA = 2015;
 	private int timeout = 1000;  // en millisecondes. type a changer plus tard si necessaire
 	private int MAX = 4;
-	
+	private ArrayList<String> connectedUser;
+
 	public static ArrayList<PrintStream> out;
 	public static ArrayList<PrintStream> outAudio;
 	public HashMap<String, String> db;
@@ -33,6 +34,7 @@ public class Server extends Thread{
 		portA = portAudio;
 		out = new ArrayList<PrintStream>();
 		outAudio = new ArrayList<PrintStream>();
+		connectedUser = new ArrayList<String>();
 		j = new Jam(MAX);
 		port = 2013;
 		db = new HashMap<String,String>();
@@ -51,8 +53,8 @@ public class Server extends Thread{
 			serv.setReuseAddress(true);
 			serv.bind(new InetSocketAddress(port));
 			cAudio = new ServerSocket(portA);
-			cAudio.setReuseAddress(true);
-			cAudio.bind(new InetSocketAddress(portA));
+//			cAudio.setReuseAddress(true);
+//			cAudio.bind(new InetSocketAddress(portA));
 			System.out.println("Récupération de la base de donnée");
 			BufferedReader br = null;
 			try {
@@ -132,6 +134,30 @@ public class Server extends Thread{
 		bw.write(pw);
 		bw.write("\n");
 		bw.close();
+		return true;
+	}
+	
+	public synchronized ArrayList<String> getConnectedUser() {
+		return connectedUser;
+	}
+
+
+	public void setConnectedUser(ArrayList<String> connectedUser) {
+		this.connectedUser = connectedUser;
+	}
+	
+	public synchronized void addConnectedUser(String n){
+		this.connectedUser.add(n);
+	}
+	
+	public synchronized void deleteUser(String n){
+		this.connectedUser.remove(n);
+	}
+	
+	public synchronized boolean checkNameClient(String n){
+		if(db.containsKey(n) ||connectedUser.contains(n)){ // Si le nom est deja reserve
+			return false;
+		}
 		return true;
 	}
 }
