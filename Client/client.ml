@@ -12,10 +12,19 @@ let window = GWindow.window
 let vbox = GPack.vbox
   ~packing:window#add ()
 
-let scroll = GBin.scrolled_window
+let hbox = GPack.hbox
   ~packing:vbox#add ()
+
+let scrollChat = GBin.scrolled_window
+  ~packing:hbox#add ()
   
-let textview = GText.view ~packing:scroll#add_with_viewport ()
+let textviewChat = GText.view ~packing:scrollChat#add_with_viewport ()
+
+let scrollUser = GBin.scrolled_window
+  ~packing:hbox#add ()
+  
+let textviewUser = GText.view ~packing:scrollUser#add_with_viewport ()
+
 
 let entry = GEdit.entry
   ~text:""
@@ -25,6 +34,13 @@ let my_input_line  fd =
   let s = " "  and  r = ref "" 
   in while (ThreadUnix.read fd s 0 1 > 0) && s.[0] <> '\n' do r := !r ^s done ;
   !r ;;
+
+let majUsers l =
+  let rec majUsersRec l acc = 
+    match l with
+    |a::b -> majUsersRec b acc^a^"\n"
+    |_ -> acc
+  in majUsersRec l "";;
 
 class virtual client serv p c =
 object(s)
@@ -63,12 +79,12 @@ object(this)
     try
       while true do
 	let so = (my_input_line s) in
-	hist := !hist^"\n"^so;
 	let l = (Str.split (Str.regexp "/") so) in
 	match (List.hd l) with
 	|"WELCOME" -> 
 	  begin
-	    textview#buffer#set_text !hist;
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
 	    Printf.printf "%s\n" so; 
 	    flush stdout;
 	    let so = (my_input_line s) in
@@ -83,10 +99,25 @@ object(this)
 	      Unix.connect sock sock_addr;
 	    |_->raise Fin
 	  end
-	|"EXITED"-> textview#buffer#set_text !hist;
-	|"LISTEN"->textview#buffer#set_text !hist;
-	|"ERROR"->textview#buffer#set_text !hist;
-	|_->	textview#buffer#set_text !hist;
+	|"EXITED"->
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
+	|"LISTEN"->
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
+	|"ERROR"->
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
+	|"AUDIO_OK"-> 
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
+	|"ACK_OPTS"->
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
+	|"LIST" ->textviewUser#buffer#set_text  (majUsers (List.tl l));
+	|_->
+	    hist := !hist^"\n"^so;
+	    textviewChat#buffer#set_text !hist;
       done
     with Fin -> Unix.close sock
 
@@ -106,6 +137,8 @@ object(this)
 (* | Connected -> this#treat s sa*)
       
 end;;
+
+
 
 let main() =
   if Array.length Sys.argv < 3

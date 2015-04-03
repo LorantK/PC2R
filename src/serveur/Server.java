@@ -141,6 +141,13 @@ public class Server extends Thread{
 		return connectedUser;
 	}
 
+	public synchronized String getConnectedUserString() {
+		String s="";
+		for(int i = 0;i<connectedUser.size()-1;i++){
+			s=s+connectedUser.get(i)+"/";
+		}
+		return s+connectedUser.get(connectedUser.size()-1);
+	}
 
 	public void setConnectedUser(ArrayList<String> connectedUser) {
 		this.connectedUser = connectedUser;

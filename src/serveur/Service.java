@@ -114,14 +114,14 @@ public class Service extends Thread {
 			out.flush();
 			out.println("AUDIO_PORT/2015/");
 			out.flush();
-
 			Canalaudio = serv.getcAudio().accept();
 			jamConnected = true;
 			ServiceAudio s = new ServiceAudio(Canalaudio, nomClient, serv);
-
 			out.println("AUDIO_OK");
 			out.flush();
-
+			out.println("LIST/"+serv.getConnectedUserString());
+			out.flush();
+			userConnected();
 			gestionJam();
 			chat();
 
@@ -214,6 +214,8 @@ public class Service extends Thread {
 		for (int i = 0; i < serv.out.size(); i++) {
 			serv.out.get(i).println("CONNECTED/" + nomClient + "/");
 			serv.out.get(i).flush();
+			serv.out.get(i).println("LIST/"+serv.getConnectedUserString());
+			serv.out.get(i).flush();	
 		}
 	}
 
@@ -234,6 +236,8 @@ public class Service extends Thread {
 				for (int i = 0; i < serv.out.size(); i++) {
 					serv.out.get(i).println("EXITED/" + nomClient + "/");
 					serv.out.get(i).flush();
+					serv.out.get(i).println("LIST/"+serv.getConnectedUserString());
+					serv.out.get(i).flush();	
 				}
 			
 		}catch(IOException e){
@@ -249,7 +253,6 @@ public class Service extends Thread {
 					.getMax()) {
 				serv.getJam().addConnecte();
 				if (serv.getJam().getNbConnecte() == 1) {
-
 					out.println("EMPTY_SESSION");
 					out.flush();
 					proprietaire = true;
@@ -281,6 +284,7 @@ public class Service extends Thread {
 							+ serv.getJam().getStyle() + "/"
 							+ serv.getJam().getTempo() + "/"
 							+ serv.getJam().getNbConnecte() + "/");
+					out.flush();
 				}
 			} else {
 				out.println("FULL_SESSION");
