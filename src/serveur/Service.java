@@ -126,6 +126,7 @@ public class Service extends Thread {
 			chat();
 
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
