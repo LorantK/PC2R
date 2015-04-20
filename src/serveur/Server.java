@@ -36,7 +36,9 @@ public class Server extends Thread{
 		outAudio = new ArrayList<PrintStream>();
 		connectedUser = new ArrayList<String>();
 		j = new Jam(MAX);
+		
 		port = 2013;
+		
 		db = new HashMap<String,String>();
 	}
 

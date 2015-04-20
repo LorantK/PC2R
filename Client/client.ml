@@ -3,7 +3,6 @@ exception Connected;;
 
 open OcsfmlAudio
 
-
 (******* IHM *******)
 let _ = GMain.init()
 
@@ -38,11 +37,6 @@ let my_input_line  fd =
   let s = " "  and  r = ref "" 
   in while (ThreadUnix.read fd s 0 1 > 0) && s.[0] <> '\n' do r := !r ^s done ;
   !r ;;
-
-
-
-
-
 
 (***** met à jour la liste des utilisateurs ****)
 let majUsers l =
@@ -137,23 +131,37 @@ object(this)
       done
     with Fin -> Unix.close sock
 
-  method receiveAudio arg =  
+  (*method receiveAudio arg =  
     let (s,sa) = arg in
     let buffer = new buffer in
     let sound = new sound in
     while true do
       begin
-	ignore (ThreadUnix.read s buffer 0 1) ;
+	let so = (my_input_line s) in
+	buffer := Marshal.from_string
 	sound#set_buffer buffer;
 	sound#play;
 	while(sound#get_status <> Stopped) do
 	done
       end
     done
+  *)
 
-  method sendAudio arg =
+ (* method sendAudio arg =
     let (s,sa) = arg in
-    let buffer = 
+    if SoundRecorder.is_available () then
+      begin
+	(*let recorder = new sound_buffer_recorder in
+	recorder#start();
+	recorder#stop;
+	let buffer = recorder#get_buffer in*)
+	let buffer = new buffer in
+	buffer#load_from_file "test.ogg";
+	let str = Marshal.to_string buffer [] in
+	ignore (ThreadUnix.write s str 0 (String.length str));
+      end
+ *)
+
 
   method send arg =
     let (s,sa) = arg in
@@ -176,7 +184,7 @@ end;;
 
 let main() =
   if Array.length Sys.argv < 3
-  then Printf.printf "usage : client server port\n"
+  then Printf.printf "usage : server port client\n"
   else 
 
     let port = int_of_string(Sys.argv.(2))
