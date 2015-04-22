@@ -46,7 +46,7 @@ let majUsers l =
     |_ -> acc
   in majUsersRec l "";;
 
-
+let bpm = ref 0;;
 
 
 class virtual client serv p c =
@@ -70,9 +70,10 @@ end;;
 class client_maj s p c =
 object(this)
   inherit client s p c
+
   method connect s sa =
-    window#connect#destroy ~callback:GMain.Main.quit;
-    entry#connect#activate ~callback:(fun() -> this#send (s,sa));
+    ignore (window#connect#destroy ~callback:GMain.Main.quit);
+    ignore (entry#connect#activate ~callback:(fun() -> this#send (s,sa)));
     let si = "CONNECT/"^c^"\n" in
     ignore (ThreadUnix.write s si 0 (String.length si));
     
@@ -112,6 +113,10 @@ object(this)
 	|"EXITED"->
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
+	|"CURRENT" ->
+	  hist := !hist^"\n"^so;
+	  textviewChat#buffer#set_text !hist;
+	  bpm := int_of_string (List.hd (List.tl (List.tl l)));
 	|"LISTEN"->
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
@@ -147,20 +152,28 @@ object(this)
     done
   *)
 
- (* method sendAudio arg =
-    let (s,sa) = arg in
-    if SoundRecorder.is_available () then
-      begin
-	(*let recorder = new sound_buffer_recorder in
-	recorder#start();
-	recorder#stop;
-	let buffer = recorder#get_buffer in*)
-	let buffer = new buffer in
-	buffer#load_from_file "test.ogg";
-	let str = Marshal.to_string buffer [] in
-	ignore (ThreadUnix.write s str 0 (String.length str));
-      end
- *)
+ (*method sendAudio arg = 
+   let s = arg in
+    let tick = ref 0 in
+    (*let time =  ((60.0/. (float_of_int !bpm)) *. 1000.0) in*)
+    while true do 
+     (* if SoundRecorder.is_available () then*)
+	begin
+	  let recorder = new sound_buffer_recorder in
+	  recorder#start();
+	  (*let t = Sys.time() in
+	  let t2 = ref (Sys.time()) in
+	  while (!t2 -. t) < time do
+	    t2 := Sys.time()
+	  done;*)
+	  recorder#stop;
+	  let buffer = recorder#get_buffer in
+	  let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^(Marshal.to_string buffer []) in
+	  ignore (ThreadUnix.write s str 0 (String.length str));
+	  tick := !tick +1;
+	end
+    done 
+ *)	  
 
 
   method send arg =
