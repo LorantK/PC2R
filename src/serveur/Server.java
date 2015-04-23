@@ -59,7 +59,7 @@ public class Server extends Thread{
 			cAudio = new ServerSocket(portA);
 //			cAudio.setReuseAddress(true);
 //			cAudio.bind(new InetSocketAddress(portA));
-			System.out.println("Récupération de la base de donnée");
+			System.out.println("Recuperation de la base de donnee");
 			BufferedReader br = null;
 			try {
 				br = new BufferedReader(new FileReader("CompteUtil"));
@@ -104,6 +104,10 @@ public class Server extends Thread{
 
 	public Jam getJam(){
 		return j;
+	}
+	
+	public void setJam(Jam j){
+		this.j = j;
 	}
 	
 	public int getTimeout() {
@@ -204,6 +208,10 @@ public class Server extends Thread{
 		}
 		tabBuffer.get(tick).add(buffer);
 		return tabBuffer.size() - 1;
+	}
+	
+	public int getMax(){
+		return MAX;
 	}
 	
 }

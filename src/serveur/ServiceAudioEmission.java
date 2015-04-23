@@ -58,7 +58,7 @@ public class ServiceAudioEmission extends Thread {
 				float[] f = s.getTabBuffer().get(tick).get(i);
 				for(int j = 0; j < f.length; j++){
 					BufferMixe[j] = BufferMixe[j] + f[j]; // addition
-					if(BufferMixe[j] > 1 ||BufferMixe[j] < 1)
+					if(BufferMixe[j] > 1 ||BufferMixe[j] < 1) // Depassement
 						depassement = true;
 					
 					if(BufferMixe[j] > max) // on recupere le max des valeurs du tableau
