@@ -2,15 +2,20 @@ package serveur;
 
 import java.util.ArrayList;
 
+/**
+ * Classe jam
+ * @author Eric
+ *
+ */
 public class Jam extends Thread {
 	private String style;
 	private String tempo;
 	private int nbConnecte = 0;
 	private final int MAX;
-	private int tickActuel = 0;
+	private int tickActuel = 0; 
 	private boolean parametre = false;
 	private Server s;
-	private ArrayList<Tick> listTick;
+	private ArrayList<Tick> listTick; // A chaque fois que l'on change de tick, on cree un nouveau objet tick
 
 	public Jam(int max, Server s){
 		MAX = max;
@@ -20,15 +25,18 @@ public class Jam extends Thread {
 	}
 
 	public void run(){ // Gestion du tick
-		while(true){
-			listTick.add(new Tick(tickActuel, s));
-			try {
-				listTick.get(tickActuel).wait();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		try {
+			if(!parametre){
+				this.wait();
 			}
-			tickActuel++;
+			while(true){
+				listTick.add(new Tick(tickActuel, s));
+				listTick.get(tickActuel).wait(); // 
+				tickActuel++;
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -43,11 +51,13 @@ public class Jam extends Thread {
 	public void setStyle(String style){
 		this.style = style;
 		parametre = true;
+		this.notify();
 	}
 
 	public void setTempo(String tempo){
 		this.tempo = tempo;
 		parametre = true;
+		this.notify();
 	}
 
 	public synchronized void addConnecte(){

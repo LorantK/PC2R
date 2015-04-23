@@ -7,6 +7,11 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 
+/**
+ * Recupere les buffers et les ajoute dans la hashmap
+ * @author Eric
+ *
+ */
 public class ServiceAudioReception extends Thread{
 	protected Socket canalAudio;
 	protected String nomClient;
@@ -45,17 +50,15 @@ public class ServiceAudioReception extends Thread{
 					if(tab.length != 3){
 						outAudio.println("AUDIO_OK"); 
 						int tick = Integer.parseInt(tab[1]);
-						buffer = tab[2].getBytes(); // String -> byte[]
-						f = ByteBuffer.wrap(buffer).asFloatBuffer().array(); // byte[] -> float[]
-						int numero = s.addBuffer(tick, f);
+						f = ByteBuffer.wrap(tab[2].getBytes()).asFloatBuffer().array(); //String-> byte[] -> float[]
+						int numero = s.addBuffer(tick, f); // Ajout du buffer dans la hashmap
+						// le numero servira pour le mixage 
 						ServiceAudioEmission s1 = new ServiceAudioEmission(outAudio, nomClient, s, tick, numero);
 					}
 					else{
 						outAudio.println("AUDIO_KO"); 
 					}
 				}
-
-
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

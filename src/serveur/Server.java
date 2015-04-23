@@ -27,7 +27,7 @@ public class Server extends Thread{
 	public static ArrayList<PrintStream> out;
 	public static ArrayList<PrintStream> outAudio;
 	public HashMap<String, String> db;
-	public static HashMap<Integer, ArrayList<float[]>> tabBuffer;
+	public static HashMap<Integer, ArrayList<float[]>> tabBuffer; // Hashmap contient les buffers audios
 
 	public Server(int max, int timeout, int portAudio) throws IOException{
 		MAX = max;
@@ -193,7 +193,7 @@ public class Server extends Thread{
 	}
 	
 	/**
-	 * Ajoute le buffer dans le tableau et retourne l'indice de la case dans laquelle il est ajoute
+	 * Ajoute le buffer dans le tableau et retourne l'indice de la case dans laquelle il est ajoute (pour le mixage)
 	 * @param tick
 	 * @param buffer
 	 * @return
@@ -206,10 +206,4 @@ public class Server extends Thread{
 		return tabBuffer.size() - 1;
 	}
 	
-//	public ArrayList<float[]> getBuffer(int tick){
-//		if(tabBuffer.get(tick) == null){
-//			tabBuffer.put(tick, new ArrayList<float[]>());
-//		}
-//		return tabBuffer.get(tick);
-//	}
 }

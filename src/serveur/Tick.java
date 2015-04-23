@@ -2,8 +2,13 @@ package serveur;
 
 import java.util.ArrayList;
 
+/**
+ * Classe Tick, on gere ici la synchro
+ * @author Eric
+ *
+ */
 public class Tick extends Thread {
-	private int numero;
+	private int numero; // numero du tick
 	private Server s;
 
 	public Tick(int numero, Server s){
@@ -16,8 +21,8 @@ public class Tick extends Thread {
 		while(true){
 			ArrayList<float[]> listBuff = s.getTabBuffer().get(numero);
 			if(listBuff != null){
-				if(listBuff.size() == s.getJam().getNbConnecte()){
-					this.notifyAll();
+				if(listBuff.size() == s.getJam().getNbConnecte()){ // Si tous les clients ont envoye leur buffer
+					this.notifyAll(); // on debloque la jam et les threads d'envoi d'audio
 					break;
 				}
 			}
