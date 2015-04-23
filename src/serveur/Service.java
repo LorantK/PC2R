@@ -116,7 +116,7 @@ public class Service extends Thread {
 			out.flush();
 			Canalaudio = serv.getcAudio().accept();
 			jamConnected = true;
-			ServiceAudio s = new ServiceAudio(Canalaudio, nomClient, serv);
+			ServiceAudioReception s = new ServiceAudioReception(Canalaudio, nomClient, serv);
 			out.println("AUDIO_OK");
 			out.flush();
 			out.println("LIST/"+serv.getConnectedUserString());

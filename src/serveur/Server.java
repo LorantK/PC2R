@@ -27,6 +27,7 @@ public class Server extends Thread{
 	public static ArrayList<PrintStream> out;
 	public static ArrayList<PrintStream> outAudio;
 	public HashMap<String, String> db;
+	public static HashMap<Integer, ArrayList<float[]>> tabBuffer;
 
 	public Server(int max, int timeout, int portAudio) throws IOException{
 		MAX = max;
@@ -35,7 +36,8 @@ public class Server extends Thread{
 		out = new ArrayList<PrintStream>();
 		outAudio = new ArrayList<PrintStream>();
 		connectedUser = new ArrayList<String>();
-		j = new Jam(MAX);
+		tabBuffer = new HashMap<Integer, ArrayList<float[]>>();
+		j = new Jam(MAX, this);
 		
 		port = 2013;
 		
@@ -169,4 +171,45 @@ public class Server extends Thread{
 		}
 		return true;
 	}
+
+
+	public static ArrayList<PrintStream> getOutAudio() {
+		return outAudio;
+	}
+
+
+	public static void setOutAudio(ArrayList<PrintStream> outAudio) {
+		Server.outAudio = outAudio;
+	}
+
+
+	public synchronized HashMap<Integer, ArrayList<float[]>> getTabBuffer() {
+		return tabBuffer;
+	}
+
+
+	public static void setTabBuffer(HashMap<Integer, ArrayList<float[]>> tabBuffer) {
+		Server.tabBuffer = tabBuffer;
+	}
+	
+	/**
+	 * Ajoute le buffer dans le tableau et retourne l'indice de la case dans laquelle il est ajoute
+	 * @param tick
+	 * @param buffer
+	 * @return
+	 */
+	public synchronized int addBuffer(int tick, float[] buffer){ // 
+		if(tabBuffer.get(tick) == null){
+			tabBuffer.put(tick, new ArrayList<float[]>());
+		}
+		tabBuffer.get(tick).add(buffer);
+		return tabBuffer.size() - 1;
+	}
+	
+//	public ArrayList<float[]> getBuffer(int tick){
+//		if(tabBuffer.get(tick) == null){
+//			tabBuffer.put(tick, new ArrayList<float[]>());
+//		}
+//		return tabBuffer.get(tick);
+//	}
 }
