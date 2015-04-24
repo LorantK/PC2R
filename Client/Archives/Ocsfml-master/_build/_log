@@ -1,0 +1,9 @@
+### Starting build.
+# Target: myocamlbuild, tags: { link, native, ocaml, package(ocamlbuildcpp), program }
+ocamlfind ocamlopt -package unix -package ocamlbuild -linkpkg -package ocamlbuildcpp myocamlbuild.ml /usr/lib/ocaml/ocamlbuild/ocamlbuild.cmx -o myocamlbuild
++ ocamlfind ocamlopt -package unix -package ocamlbuild -linkpkg -package ocamlbuildcpp myocamlbuild.ml /usr/lib/ocaml/ocamlbuild/ocamlbuild.cmx -o myocamlbuild
+ocamlfind: [WARNING] Cannot read directory /usr/local/lib/ocaml/4.01.0/stublibs which is mentioned in ld.conf
+File "myocamlbuild.ml", line 2, characters 0-18:
+Error: Unbound module OcamlbuildCpp
+Command exited with code 2.
+# Compilation unsuccessful.

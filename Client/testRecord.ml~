@@ -1,0 +1,10 @@
+open OcsfmlAudio
+
+let _ =
+  begin
+    let music = new music () in
+    if not music#open_from_file "keke.ogg"
+    then raise OcsfmlSystem.LoadFailure;
+
+    music#play;
+  end;

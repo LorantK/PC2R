@@ -1,0 +1,12 @@
+let window = GWindow.window 
+  ~title:"IHM"
+  ~width:200
+  ~height:100
+  ~border_width:10 () in
+window#connect#destroy ~callback:GMain.Main.quit;
+let vbox = GPack.vbox ~packing:window#add() in
+let entry = GEdit.entry ~max_length:500 ~packing:vbox#add() in
+window#show();
+GMain.Main.main();
+
+let _ = Printexc.print main()      

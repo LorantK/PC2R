@@ -106,7 +106,8 @@ object(this)
 	      let h_addr = host.Unix.h_addr_list.(0) in
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
-	   
+	      let t1 = Thread.create this#sendAudio s in ()
+	      
 	    |_->raise Fin
 	  end
 
@@ -152,28 +153,28 @@ object(this)
     done
   *)
 
- (*method sendAudio arg = 
+ method sendAudio arg = 
    let s = arg in
-    let tick = ref 0 in
+   let tick = ref 0 in
     (*let time =  ((60.0/. (float_of_int !bpm)) *. 1000.0) in*)
-    while true do 
-     (* if SoundRecorder.is_available () then*)
-	begin
-	  let recorder = new sound_buffer_recorder in
-	  recorder#start();
+   while true do 
+     if SoundRecorder.is_available () then
+       begin
+	 let recorder = new sound_buffer_recorder in
+	 recorder#start();
 	  (*let t = Sys.time() in
-	  let t2 = ref (Sys.time()) in
-	  while (!t2 -. t) < time do
+	    let t2 = ref (Sys.time()) in
+	    while (!t2 -. t) < time do
 	    t2 := Sys.time()
-	  done;*)
-	  recorder#stop;
-	  let buffer = recorder#get_buffer in
-	  let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^(Marshal.to_string buffer []) in
-	  ignore (ThreadUnix.write s str 0 (String.length str));
-	  tick := !tick +1;
-	end
-    done 
- *)	  
+	    done;*)
+	 recorder#stop;
+	 let buffer = recorder#get_buffer in
+	 let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^(Marshal.to_string buffer []) in
+	 ignore (ThreadUnix.write s str 0 (String.length str));
+	 tick := !tick +1;
+       end
+   done
+     
 
 
   method send arg =
