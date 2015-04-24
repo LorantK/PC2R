@@ -34,44 +34,45 @@ public class ServiceAudioEmission extends Thread {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			// On recupere le buffer le plus grand
-			int MaxTailleBuff = 0;
-
-			// On recupere la taille du buffer le plus grand
-			for(int i = 0; i < s.getTabBuffer().get(tick).size(); i++){
-				if(s.getTabBuffer().get(tick).get(i).length > MaxTailleBuff);
-					MaxTailleBuff = s.getTabBuffer().get(tick).get(i).length;
-			}
-
-			float[] BufferMixe = new float[MaxTailleBuff];
-			for(int i = 0; i < MaxTailleBuff; i++){
-				BufferMixe[i] = 0;
-			}
-			
-			// On mix
-			for(int i = 0; i < s.getTabBuffer().get(tick).size(); i++){
-				if(i == numero) 
-					continue;
-				
-				boolean depassement= false;
-				float max = -100000;
-				float[] f = s.getTabBuffer().get(tick).get(i);
-				for(int j = 0; j < f.length; j++){
-					BufferMixe[j] = BufferMixe[j] + f[j]; // addition
-					if(BufferMixe[j] > 1 ||BufferMixe[j] < 1) // Depassement
-						depassement = true;
-					
-					if(BufferMixe[j] > max) // on recupere le max des valeurs du tableau
-						max = BufferMixe[j];
-				}
-				if(depassement){
-					for(int j = 0; j < f.length; j++){ // Gestion depassement, on divise toutes les valeurs par max
-						BufferMixe[j] = BufferMixe[j] / max;
-					}	
-				}
-			}
-			// On envoie ce qu'on a mixe
-			outAudio.println("AUDIO_MIX/" + Arrays.toString(BufferMixe));
 		}
+		// On recupere le buffer le plus grand
+		int MaxTailleBuff = 0;
+
+		// On recupere la taille du buffer le plus grand
+		for(int i = 0; i < s.getTabBuffer().get(tick).size(); i++){
+			if(s.getTabBuffer().get(tick).get(i).length > MaxTailleBuff);
+			MaxTailleBuff = s.getTabBuffer().get(tick).get(i).length;
+		}
+
+		float[] BufferMixe = new float[MaxTailleBuff];
+		for(int i = 0; i < MaxTailleBuff; i++){
+			BufferMixe[i] = 0;
+		}
+
+		// On mix
+		for(int i = 0; i < s.getTabBuffer().get(tick).size(); i++){
+			if(i == numero) 
+				continue;
+
+			boolean depassement= false;
+			float max = -100000;
+			float[] f = s.getTabBuffer().get(tick).get(i);
+			for(int j = 0; j < f.length; j++){
+				BufferMixe[j] = BufferMixe[j] + f[j]; // addition
+				if(BufferMixe[j] > 1 ||BufferMixe[j] < 1) // Depassement
+					depassement = true;
+
+				if(BufferMixe[j] > max) // on recupere le max des valeurs du tableau
+					max = BufferMixe[j];
+			}
+			if(depassement){
+				for(int j = 0; j < f.length; j++){ // Gestion depassement, on divise toutes les valeurs par max
+					BufferMixe[j] = BufferMixe[j] / max;
+				}	
+			}
+		}
+		// On envoie ce qu'on a mixe
+		outAudio.println("AUDIO_MIX/" + Arrays.toString(BufferMixe));
+
 	}
 }
