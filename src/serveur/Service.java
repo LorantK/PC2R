@@ -100,7 +100,7 @@ public class Service extends Thread {
 							out.flush();
 						}
 					}
-					out.println("ERROR/Commande Invalide. Entrez une commande pour vous connecter ou vous déconnecter");
+					out.println("ERROR/Commande Invalide. Entrez une commande pour vous connecter ou vous deconnecter");
 					out.flush();
 				}
 			}
@@ -116,7 +116,8 @@ public class Service extends Thread {
 			out.flush();
 			Canalaudio = serv.getcAudio().accept();
 			jamConnected = true;
-			ServiceAudio s = new ServiceAudio(Canalaudio, nomClient, serv);
+			ServiceAudioReception s = new ServiceAudioReception(Canalaudio, nomClient, serv);
+			out.println("AUDIO_SYNC/" + serv.getJam().getTickActuel() + "/");
 			out.println("AUDIO_OK");
 			out.flush();
 			out.println("LIST/"+serv.getConnectedUserString());
@@ -173,6 +174,9 @@ public class Service extends Thread {
 						serv.out.get(i).flush();
 					}
 					break;	
+				case "PROPRIETAIRE":
+					proprietaire = true;
+					break;
 				default:
 					out.println("ERROR/Commande Invalide");
 					out.flush();
@@ -190,7 +194,7 @@ public class Service extends Thread {
 	public void help(){
 		out.println("LISTE COMMANDES DISPONIBLES :");
 		if(proprietaire)
-			out.println("SET_OPTIONS/style/tempo : Règle les paramètres de la JAM");
+			out.println("SET_OPTIONS/style/tempo : Regle les parametres de la JAM");
 		out.println("TALK/message/ : ");
 		out.flush();
 	}
@@ -221,7 +225,7 @@ public class Service extends Thread {
 	}
 
 	/**
-	 * Déconnecte l'utilisateur et signifie à tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
+	 * Déconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
 	 */
 	public void disconnectUser(){
 		try{
@@ -240,9 +244,21 @@ public class Service extends Thread {
 					serv.out.get(i).println("LIST/"+serv.getConnectedUserString());
 					serv.out.get(i).flush();	
 				}
+			if(proprietaire){
+				for (int i = 0; i < serv.out.size(); i++) {
+					serv.out.get(i).println("Musicien originel parti. Arret de la jam...");
+					serv.out.get(i).flush();	
+				}
+				serv.setJam(new Jam(serv.getMax(), serv));
+				if(serv.out.size() != 0){
+					serv.out.get(0).println("Vous etes le nouveau proprietaire de la Jam. Veuillez choisir les parametres");
+					serv.out.get(0).flush();	
+				}
+			}
+				
 			
 		}catch(IOException e){
-			System.err.println("Problème dans la déconnexion du client");
+			System.err.println("Probleme dans la deconnexion du client");
 		}
 	}
 

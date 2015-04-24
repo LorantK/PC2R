@@ -107,7 +107,7 @@ object(this)
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
 	      let t1 = Thread.create this#sendAudio s in ()
-	      
+	     
 	    |_->raise Fin
 	  end
 
@@ -173,8 +173,7 @@ object(this)
 	 ignore (ThreadUnix.write s str 0 (String.length str));
 	 tick := !tick +1;
        end
-   done
-     
+   done  
 
 
   method send arg =
