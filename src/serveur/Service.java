@@ -157,6 +157,13 @@ public class Service extends Thread {
 
 							out.println("ACK_OPTS");
 							out.flush();
+							for (int i = 0; i < serv.out.size(); i++) {
+								serv.out.get(i).println("CURRENT_SESSION/"
+										+ serv.getJam().getStyle() + "/"
+										+ serv.getJam().getTempo() + "/"
+										+ serv.getJam().getNbConnecte() + "/");
+								serv.out.get(i).flush();
+							}
 
 //							for (int i = 0; i < serv.out.size(); i++) {
 //								serv.out.get(i)

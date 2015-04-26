@@ -88,86 +88,59 @@ object(this)
     try
       while true do
 	let so = (my_input_line s) in
+	Printf.printf "%s\n" so; 
+	flush stdout;
 	let l = (Str.split (Str.regexp "/") so) in
 	match (List.hd l) with
 	|"WELCOME" -> 
 	  begin
-	    (*hist := !hist^"\n"^so;
-	    textviewChat#buffer#set_text !hist;*)
-	    Printf.printf "%s\n" so; 
-	    flush stdout;
 	    let so = (my_input_line s) in
 	    let l = (Str.split (Str.regexp "/") so) in
 	    match (List.hd l) with
 	    |"AUDIO_PORT" -> 
 	      Printf.printf "%s\n" so; 
-	      (*hist := !hist^"\n"^so;
-	      textviewChat#buffer#set_text !hist;*)
 	      let port = (List.hd (List.tl l)) in
 	      let sock = ThreadUnix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
 	      let host = Unix.gethostbyname server in
 	      let h_addr = host.Unix.h_addr_list.(0) in
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
-	     
 	    |_->raise Fin
 	  end
 	|"CONNECTED" ->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;
 	  nbUsers := !nbUsers+1;
 	  let str = (List.hd (List.tl l))^" vient de se connecter" in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
 	  let t1 = Thread.create this#sendAudio sock in ()
 	|"EXITED"->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;
 	  nbUsers := !nbUsers-1;
 	  let str = (List.hd (List.tl l))^" vient de se deconnecter" in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
 	|"CURRENT_SESSION" ->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;
-	  hist := !hist^"\n"^so;
+	  let str = "Parametres de la jam : style ="^(List.hd (List.tl l))^" bpm="^ (List.hd (List.tl (List.tl l)))^" nbUsers="^ (List.hd (List.tl (List.tl (List.tl l)))) in
+	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
-	  bpm := int_of_string (List.hd (List.tl (List.tl l)));
+	  if (List.hd (List.tl (List.tl l))) <> "null" then
+	    bpm := int_of_string (List.hd (List.tl (List.tl l)));
 	  nbUsers := int_of_string  (List.hd (List.tl (List.tl (List.tl l))));
 	|"EMPTY_SESSION" ->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;
 	  let str = "Session vide : veuiller parametrer la jam avec la commande suivante : SET_OPTIONS/style/tempo" in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
 	|"LISTEN"->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;
 	  let str = (List.hd (List.tl l))^" : "^(List.hd (List.tl (List.tl l))) in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
 	|"ERROR"->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
-	|"AUDIO_SYNC"->
-	  Printf.printf "%s\n" so; 
-	  flush stdout; 	
-	|"AUDIO_OK"->
-	  Printf.printf "%s\n" so; 
-	  flush stdout; 
-	  (*hist := !hist^"\n"^so;
-	  textviewChat#buffer#set_text !hist;*)
-	|"ACK_OPTS"->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;	 
-	  (*hist := !hist^"\n"^so;
-	  textviewChat#buffer#set_text !hist;*)
+	|"AUDIO_SYNC"-> ()	
+	|"AUDIO_OK"-> ()
+	|"ACK_OPTS"-> () 
 	|"LIST" ->textviewUser#buffer#set_text  (majUsers (List.tl l));
-	|_->
-	  Printf.printf "%s\n" so; 
-	  flush stdout;	 
+	|_-> 
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
       done
@@ -227,11 +200,16 @@ object(this)
        let si = (my_input_line Unix.stdin)^"\n" in *)
     let si = entry#text^"\n" in
     let l = (Str.split (Str.regexp "/") si) in
-    match (List.hd l) with
+    match (List.hd l) with    
+    |"LOGIN"->   
+      ignore (ThreadUnix.write s si 0 (String.length si));
+      entry#set_text "";   
+    |"REGISTER"->   
+      ignore (ThreadUnix.write s si 0 (String.length si));
+      entry#set_text "";   
     |"SET_OPTIONS"->   
       ignore (ThreadUnix.write s si 0 (String.length si));
-	entry#set_text "";
-	Thread.exit()    
+      entry#set_text "";   
     |"EXIT"->   
       ignore (ThreadUnix.write s si 0 (String.length si));
       entry#set_text "";
