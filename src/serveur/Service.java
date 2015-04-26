@@ -225,7 +225,7 @@ public class Service extends Thread {
 	}
 
 	/**
-	 * Déconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
+	 * Deconnecte l'utilisateur et signifie a tous les clients connectes la deconnexion de USER (COMMANDE EXITED)
 	 */
 	public void disconnectUser(){
 		try{

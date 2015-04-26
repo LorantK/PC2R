@@ -22,7 +22,9 @@ public class Tick extends Thread {
 			ArrayList<float[]> listBuff = s.getTabBuffer().get(numero);
 			if(listBuff != null){
 				if(listBuff.size() == s.getJam().getNbConnecte()){ // Si tous les clients ont envoye leur buffer
-					this.notifyAll(); // on debloque la jam et les threads d'envoi d'audio
+					synchronized(this){
+						this.notifyAll(); // on debloque la jam et les threads d'envoi d'audio
+					}
 					break;
 				}
 			}

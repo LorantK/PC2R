@@ -30,7 +30,9 @@ public class ServiceAudioEmission extends Thread {
 
 	public void run(){
 		try {
-			s.getJam().getListTick().get(tick).wait(); // On attend que tous les buffers ont bien ete envoyes
+			synchronized(s.getJam().getListTick().get(tick)){
+				s.getJam().getListTick().get(tick).wait(); // On attend que tous les buffers ont bien ete envoyes
+			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -27,7 +27,9 @@ public class Jam extends Thread {
 	public void run(){ // Gestion du tick
 		try {
 			if(!parametre){
-				this.wait();
+				synchronized(this){
+					this.wait();
+				}
 			}
 			while(true){
 				listTick.add(new Tick(tickActuel, s));
@@ -51,13 +53,17 @@ public class Jam extends Thread {
 	public void setStyle(String style){
 		this.style = style;
 		parametre = true;
-		this.notify();
+		synchronized(this){
+			this.notify();
+		}
 	}
 
 	public void setTempo(String tempo){
 		this.tempo = tempo;
 		parametre = true;
-		this.notify();
+		synchronized(this){
+			this.notify();
+		}
 	}
 
 	public synchronized void addConnecte(){
