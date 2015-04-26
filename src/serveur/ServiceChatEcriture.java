@@ -21,7 +21,7 @@ public class ServiceChatEcriture extends Thread {
 		while(true){
 			String command = s1.nextLine();
 			for(int i = 0; i < s.out.size(); i++){
-				s.out.get(i).println(command);
+				s.out.get(i).println("LISTEN/broadcast/Serveur:" + command);
 			}
 		}
 	}
