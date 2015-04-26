@@ -46,8 +46,8 @@ let majUsers l =
     |_ -> acc
   in majUsersRec l "";;
 
-let bpm = ref 0;;
-
+let bpm = ref 60;;
+let nbUsers = ref 0;;
 
 class virtual client serv p c =
 object(s)
@@ -88,50 +88,59 @@ object(this)
     try
       while true do
 	let so = (my_input_line s) in
+	Printf.printf "%s\n" so; 
+	flush stdout;
 	let l = (Str.split (Str.regexp "/") so) in
 	match (List.hd l) with
 	|"WELCOME" -> 
 	  begin
-	    hist := !hist^"\n"^so;
-	    textviewChat#buffer#set_text !hist;
-	    Printf.printf "%s\n" so; 
-	    flush stdout;
 	    let so = (my_input_line s) in
 	    let l = (Str.split (Str.regexp "/") so) in
 	    match (List.hd l) with
 	    |"AUDIO_PORT" -> 
+	      Printf.printf "%s\n" so; 
 	      let port = (List.hd (List.tl l)) in
 	      let sock = ThreadUnix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
 	      let host = Unix.gethostbyname server in
 	      let h_addr = host.Unix.h_addr_list.(0) in
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
-	      let t1 = Thread.create this#sendAudio s in ()
-	     
 	    |_->raise Fin
 	  end
-
+	|"CONNECTED" ->
+	  nbUsers := !nbUsers+1;
+	  let str = (List.hd (List.tl l))^" vient de se connecter" in
+	  hist := !hist^"\n"^str;
+	  textviewChat#buffer#set_text !hist;
+	  let t1 = Thread.create this#sendAudio sock in ()
 	|"EXITED"->
-	  hist := !hist^"\n"^so;
+	  nbUsers := !nbUsers-1;
+	  let str = (List.hd (List.tl l))^" vient de se deconnecter" in
+	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
-	|"CURRENT" ->
-	  hist := !hist^"\n"^so;
+	|"CURRENT_SESSION" ->
+	  let str = "Parametres de la jam : style ="^(List.hd (List.tl l))^" bpm="^ (List.hd (List.tl (List.tl l)))^" nbUsers="^ (List.hd (List.tl (List.tl (List.tl l)))) in
+	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
-	  bpm := int_of_string (List.hd (List.tl (List.tl l)));
+	  if (List.hd (List.tl (List.tl l))) <> "null" then
+	    bpm := int_of_string (List.hd (List.tl (List.tl l)));
+	  nbUsers := int_of_string  (List.hd (List.tl (List.tl (List.tl l))));
+	|"EMPTY_SESSION" ->
+	  let str = "Session vide : veuiller parametrer la jam avec la commande suivante : SET_OPTIONS/style/tempo" in
+	  hist := !hist^"\n"^str;
+	  textviewChat#buffer#set_text !hist;
 	|"LISTEN"->
-	  hist := !hist^"\n"^so;
+	  let str = (List.hd (List.tl l))^" : "^(List.hd (List.tl (List.tl l))) in
+	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
 	|"ERROR"->
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
-	|"AUDIO_OK"-> 
-	  hist := !hist^"\n"^so;
-	  textviewChat#buffer#set_text !hist;
-	|"ACK_OPTS"->
-	  hist := !hist^"\n"^so;
-	  textviewChat#buffer#set_text !hist;
+	|"AUDIO_SYNC"-> ()	
+	|"AUDIO_OK"-> ()
+	|"ACK_OPTS"-> () 
 	|"LIST" ->textviewUser#buffer#set_text  (majUsers (List.tl l));
-	|_->
+	|_-> 
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
       done
@@ -153,40 +162,65 @@ object(this)
     done
   *)
 
- method sendAudio arg = 
-   let s = arg in
-   let tick = ref 0 in
-    (*let time =  ((60.0/. (float_of_int !bpm)) *. 1000.0) in*)
-   while true do 
-     if SoundRecorder.is_available () then
-       begin
-	 let recorder = new sound_buffer_recorder in
-	 recorder#start();
-	  (*let t = Sys.time() in
-	    let t2 = ref (Sys.time()) in
-	    while (!t2 -. t) < time do
-	    t2 := Sys.time()
-	    done;*)
-	 recorder#stop;
-	 let buffer = recorder#get_buffer in
-	 let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^(Marshal.to_string buffer []) in
-	 ignore (ThreadUnix.write s str 0 (String.length str));
-	 tick := !tick +1;
-       end
-   done  
-
-
+  method sendAudio arg = 
+    let s = arg in
+    let tick = ref 0 in
+    let time =  ((60.0/. (float_of_int !bpm))) in
+    while true do
+      if !nbUsers > 1 then
+	begin
+	  (Printf.printf "nb : %s\n" (string_of_int !nbUsers)); 
+	  if SoundRecorder.is_available () then
+	    begin
+	      let recorder = new sound_buffer_recorder in
+	      recorder#start();
+	      let t = Sys.time() in
+	      let t2 = ref (Sys.time()) in
+	      while (!t2 -. t) < time do
+		t2 := Sys.time()
+	      done;
+	      recorder#stop;
+	    
+	      let buffer = recorder#get_buffer in
+	      let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^ (Marshal.to_bytes buffer [Marshal.Closures]) in
+	      Printf.printf "%s \n" str;
+	      ignore (ThreadUnix.write s str 0 (String.length str));
+	      tick := !tick +1;
+	    end
+	end
+      else
+      Thread.delay 1.;
+    done
+	   
+	   
+	   
   method send arg =
     let (s,sa) = arg in
     (* while true do
        let si = (my_input_line Unix.stdin)^"\n" in *)
     let si = entry#text^"\n" in
-    ignore (ThreadUnix.write s si 0 (String.length si));
-    entry#set_text "";
     let l = (Str.split (Str.regexp "/") si) in
-    match (List.hd l) with
-    |"EXIT"->Thread.exit()
-    |_-> ()
+    match (List.hd l) with    
+    |"LOGIN"->   
+      ignore (ThreadUnix.write s si 0 (String.length si));
+      entry#set_text "";   
+    |"REGISTER"->   
+      ignore (ThreadUnix.write s si 0 (String.length si));
+      entry#set_text "";   
+    |"SET_OPTIONS"->   
+      ignore (ThreadUnix.write s si 0 (String.length si));
+      entry#set_text "";   
+    |"EXIT"->   
+      ignore (ThreadUnix.write s si 0 (String.length si));
+      entry#set_text "";
+      Thread.exit()
+    |_->  
+      let str = "TALK/"^si in
+      ignore (ThreadUnix.write s str 0 (String.length str));
+      entry#set_text ""
+	
+	
+   
 (*done*)
       
 (* | Connected -> this#treat s sa*)

@@ -18,4 +18,4 @@
 
 # 1 ocamlfind ocamlc -g  -linkpkg -package 'lablgtk2' -package 'ocsfml.audio' -o client.exe -thread -custom str.cma client.ml -cclib -lthreads -cclib -lunix 
 
-ocamlfind ocamlopt -linkpkg -package 'lablgtk2' -package 'ocsfml.audio' -thread  str.cmxa bigarray.cmxa client.ml -o client.exe -cclib -lthreads -cclib -lunix
+ocamlfind ocamlopt -linkpkg -package 'lablgtk2' -package 'ocsfml.audio' -thread  str.cmxa bigarray.cmxa  client.ml -o client.exe -cclib -lthreads -cclib -lunix

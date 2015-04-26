@@ -26,15 +26,24 @@ public class Jam extends Thread {
 
 	public void run(){ // Gestion du tick
 		try {
-			if(!parametre){
-				synchronized(this){
-					this.wait();
+
+			while(true){
+
+				if(!parametre){
+					synchronized (this) {
+						this.wait();
+						break;		
+					}
+
 				}
 			}
 			while(true){
 				listTick.add(new Tick(tickActuel, s));
-				listTick.get(tickActuel).wait(); // 
-				tickActuel++;
+				synchronized (listTick.get(tickActuel)) {
+					listTick.get(tickActuel).wait(); // 
+					tickActuel++;	
+				}
+
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -53,16 +62,17 @@ public class Jam extends Thread {
 	public void setStyle(String style){
 		this.style = style;
 		parametre = true;
-		synchronized(this){
-			this.notify();
+		synchronized (this) {
+			this.notify();	
 		}
+
 	}
 
 	public void setTempo(String tempo){
 		this.tempo = tempo;
 		parametre = true;
-		synchronized(this){
-			this.notify();
+		synchronized (this) {
+			this.notify();	
 		}
 	}
 
@@ -98,3 +108,4 @@ public class Jam extends Thread {
 		this.listTick = listTick;
 	}	
 }
+
