@@ -158,12 +158,12 @@ public class Service extends Thread {
 							out.println("ACK_OPTS");
 							out.flush();
 
-							for (int i = 0; i < serv.out.size(); i++) {
-								serv.out.get(i)
-								.println("BROADCAST Parametres JAM modifies. Nouveaux parametres Style/tempo : " +   serv.getJam().getStyle() + " "
-										+ serv.getJam().getTempo());
-								serv.out.get(i).flush();
-							}
+//							for (int i = 0; i < serv.out.size(); i++) {
+//								serv.out.get(i)
+//								.println("BROADCAST Parametres JAM modifies. Nouveaux parametres Style/tempo : " +   serv.getJam().getStyle() + " "
+//										+ serv.getJam().getTempo());
+//								serv.out.get(i).flush();
+//							}
 						}
 					}
 					break;
@@ -225,7 +225,7 @@ public class Service extends Thread {
 	}
 
 	/**
-	 * Déconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
+	 * Déconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
 	 */
 	public void disconnectUser(){
 		try{

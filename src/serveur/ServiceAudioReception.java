@@ -45,6 +45,7 @@ public class ServiceAudioReception extends Thread{
 				byte[] buffer = new byte[44100];
 				float[] f;
 				commande = inAudio.readLine(); // On recupere le message contenant le buffer
+				System.out.println(commande);
 				String [] tab = commande.split("/");
 				if(tab[0].equals("AUDIO_CHUNK")){ // Si c'est le message contenant le buffer
 					if(tab.length != 3){
