@@ -59,6 +59,7 @@ public class Server extends Thread{
 			cAudio = new ServerSocket(portA);
 //			cAudio.setReuseAddress(true);
 //			cAudio.bind(new InetSocketAddress(portA));
+			ServiceChatEcriture c = new ServiceChatEcriture(this);
 			System.out.println("Recuperation de la base de donnee");
 			BufferedReader br = null;
 			try {
