@@ -22,6 +22,7 @@ public class Service extends Thread {
 	private boolean start = false;
 	private boolean fullSession = false;
 	private boolean proprietaire = false;
+	private boolean spectator = false;
 	private boolean isConnected = false;
 	private boolean jamConnected = false;
 
@@ -64,7 +65,7 @@ public class Service extends Thread {
 				if(param[0].equals("CONNECT")){
 					if(param.length == 2){
 						if(!checkNameClient(param[1])) // Nom deja utilise
-							return;
+							continue;
 						break;
 					}	
 					out.println("ERROR/Nombre d'arguments");
@@ -77,8 +78,9 @@ public class Service extends Thread {
 						out.flush();
 					}
 					else {
-						if(!checkNameClient(param[1])) // Nom deja utilise
 						if(serv.register(param[1], param[2])){ 
+							if(!checkNameClient(param[1])) // Nom deja utilise
+								continue;
 							break;
 						}
 						else {
@@ -96,19 +98,22 @@ public class Service extends Thread {
 						if(serv.login(param[1], param[2])) {
 							break;
 						}
-
 						else {
 							out.println("ERROR/Login. Mot de passe invalide ou compte inexistant");
 							out.flush();
 						}
-					}	
+					}
 					out.println("ERROR/Commande Invalide. Entrez une commande pour vous connecter ou vous deconnecter");
 					out.flush();
 				}
 			}
 			System.out.println("Nouvelle connexion");
 			start = true;
-
+			
+			nomClient = param[1];
+			serv.addConnectedUser(nomClient);
+			isConnected = true;
+			
 			out.println("WELCOME/" + nomClient);
 			out.flush();
 			out.println("AUDIO_PORT/2015/");
@@ -207,13 +212,12 @@ public class Service extends Thread {
 
 	public boolean checkNameClient(String n){
 		if(!serv.checkNameClient(n)){
-			out.println("ACCESSDENIED. Reconnectez-vous avec un autre nom.");
+			out.println("ACCESSDENIED/Reconnectez-vous avec un autre nom.");
 			out.flush();
+			//disconnectUser();
 			return false;
 		}
-		nomClient = n;
-		serv.addConnectedUser(nomClient);
-		isConnected = true;
+
 		return true;
 	}
 
@@ -230,7 +234,7 @@ public class Service extends Thread {
 	}
 
 	/**
-	 * Deconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
+	 * Déconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
 	 */
 	public void disconnectUser(){
 		try{
@@ -317,4 +321,3 @@ public class Service extends Thread {
 		}
 	}
 }
-

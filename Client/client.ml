@@ -9,7 +9,7 @@ let _ = GMain.init()
 let window = GWindow.window
   ~title:"Jam Session"
   ~height:400
-  ~width:400
+  ~width:750
   ~border_width:5 ()
 
 let vbox = GPack.vbox
@@ -48,6 +48,7 @@ let majUsers l =
 
 let bpm = ref 60;;
 let nbUsers = ref 0;;
+let co = ref false;;
 
 class virtual client serv p c =
 object(s)
@@ -74,9 +75,9 @@ object(this)
   method connect s sa =
     ignore (window#connect#destroy ~callback:GMain.Main.quit);
     ignore (entry#connect#activate ~callback:(fun() -> this#send (s,sa)));
-    let si = "CONNECT/"^c^"\n" in
+    (*let si = "CONNECT/"^c^"\n" in
     ignore (ThreadUnix.write s si 0 (String.length si));
-    
+    *)
     let t1 = Thread.create this#receive (s,sa) in
     window#show();
     GMain.Main.main ();
@@ -94,6 +95,7 @@ object(this)
 	match (List.hd l) with
 	|"WELCOME" -> 
 	  begin
+	    co := true;
 	    let so = (my_input_line s) in
 	    let l = (Str.split (Str.regexp "/") so) in
 	    match (List.hd l) with
@@ -105,7 +107,7 @@ object(this)
 	      let h_addr = host.Unix.h_addr_list.(0) in
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
-	    |_->raise Fin
+	    |_->()
 	  end
 	|"CONNECTED" ->
 	  nbUsers := !nbUsers+1;
@@ -180,7 +182,7 @@ object(this)
 		t2 := Sys.time()
 	      done;
 	      recorder#stop;
-	    
+	      
 	      let buffer = recorder#get_buffer in
 	      let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^ (Marshal.to_bytes buffer [Marshal.Closures]) in
 	      Printf.printf "%s \n" str;
@@ -200,27 +202,42 @@ object(this)
        let si = (my_input_line Unix.stdin)^"\n" in *)
     let si = entry#text^"\n" in
     let l = (Str.split (Str.regexp "/") si) in
-    match (List.hd l) with    
-    |"LOGIN"->   
-      ignore (ThreadUnix.write s si 0 (String.length si));
-      entry#set_text "";   
-    |"REGISTER"->   
-      ignore (ThreadUnix.write s si 0 (String.length si));
-      entry#set_text "";   
-    |"SET_OPTIONS"->   
-      ignore (ThreadUnix.write s si 0 (String.length si));
-      entry#set_text "";   
-    |"EXIT"->   
-      ignore (ThreadUnix.write s si 0 (String.length si));
-      entry#set_text "";
-      Thread.exit()
-    |_->  
-      let str = "TALK/"^si in
-      ignore (ThreadUnix.write s str 0 (String.length str));
-      entry#set_text ""
-	
-	
-   
+    if !co then 
+      begin
+	match(List.hd l) with
+	|"SET_OPTIONS"->   
+	  ignore (ThreadUnix.write s si 0 (String.length si));
+	  entry#set_text "";   
+	|"EXIT"->   
+	  ignore (ThreadUnix.write s si 0 (String.length si));
+	  entry#set_text "";
+	  Thread.exit()
+	|_->  
+	  let str = "TALK/"^si in
+	  ignore (ThreadUnix.write s str 0 (String.length str));
+	  entry#set_text ""
+      end
+    else
+      begin
+	match (List.hd l) with    
+	|"LOGIN"->   
+	  ignore (ThreadUnix.write s si 0 (String.length si));
+	  entry#set_text "";   
+	|"REGISTER"->   
+	  ignore (ThreadUnix.write s si 0 (String.length si));
+	  entry#set_text "";  
+	|"EXIT"->   
+	  ignore (ThreadUnix.write s si 0 (String.length si));
+	  entry#set_text "";
+	  Thread.exit()
+	|"CONNECT"->
+	  ignore (ThreadUnix.write s si 0 (String.length si));
+	  entry#set_text ""; 
+	|_->
+	  textviewChat#buffer#set_text "veuillez vous connecter";
+	  entry#set_text "";
+      end;
+    
 (*done*)
       
 (* | Connected -> this#treat s sa*)
