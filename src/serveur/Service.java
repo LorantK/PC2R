@@ -65,7 +65,7 @@ public class Service extends Thread {
 				if(param[0].equals("CONNECT")){
 					if(param.length == 2){
 						if(!checkNameClient(param[1])) // Nom deja utilise
-							return;
+							continue;
 						break;
 					}	
 					out.println("ERROR/Nombre d'arguments");
@@ -80,7 +80,7 @@ public class Service extends Thread {
 					else {
 						if(serv.register(param[1], param[2])){ 
 							if(!checkNameClient(param[1])) // Nom deja utilise
-								return;
+								continue;
 							break;
 						}
 						else {
@@ -214,7 +214,7 @@ public class Service extends Thread {
 		if(!serv.checkNameClient(n)){
 			out.println("ACCESSDENIED/Reconnectez-vous avec un autre nom.");
 			out.flush();
-			disconnectUser();
+			//disconnectUser();
 			return false;
 		}
 
