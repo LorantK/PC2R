@@ -32,13 +32,13 @@ let entry = GEdit.entry
   ~text:""
   ~packing:(vbox#pack ~fill:false) ()
 
-(***** lit un texte sur l'entrée ****)
+(**** lit un texte sur l'entrée ****)
 let my_input_line  fd = 
   let s = " "  and  r = ref "" 
   in while (ThreadUnix.read fd s 0 1 > 0) && s.[0] <> '\n' do r := !r ^s done ;
   !r ;;
 
-(***** met à jour la liste des utilisateurs ****)
+(**** met à jour la liste des utilisateurs ****)
 let majUsers l =
   let rec majUsersRec l acc = 
     match l with
@@ -46,8 +46,11 @@ let majUsers l =
     |_ -> acc
   in majUsersRec l "";;
 
+
+(**** Variables Globales ****)
 let bpm = ref 60;;
 let nbUsers = ref 0;;
+let tick = ref 0;;
 let co = ref false;;
 let config = ref false;;
 let cNb = Condition.create ();;
@@ -56,7 +59,7 @@ let mNb = Mutex.create ();;
 let cCf = Condition.create ();;
 let mCf = Mutex.create ();;
 
-
+(**** Classe Client ****)
 class virtual client serv p  =
 object(s)
   val sock = ThreadUnix.socket Unix.PF_INET Unix.SOCK_STREAM 0;
@@ -149,7 +152,7 @@ object(this)
 	|"ERROR"->
 	  hist := !hist^"\n"^so;
 	  textviewChat#buffer#set_text !hist;
-	|"AUDIO_SYNC"-> ()	
+	|"AUDIO_SYNC"-> tick := (int_of_string (List.hd (List.tl l)))	
 	|"AUDIO_OK"-> ()
 	|"ACK_OPTS"-> () 
 	|"LIST" ->textviewUser#buffer#set_text  (majUsers (List.tl l));
@@ -177,7 +180,6 @@ object(this)
 
   method sendAudio arg = 
     let s = arg in
-    let tick = ref 0 in
     let time =  ((60.0/. (float_of_int !bpm))) in
     while true do
       Mutex.lock mNb;
