@@ -2,7 +2,7 @@ package serveur;
 
 import java.io.IOException;
 
-public class TestSocket {
+public class TestServeur {
 
 	public static void main(String[] args) {
 		try {
