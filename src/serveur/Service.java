@@ -64,6 +64,8 @@ public class Service extends Thread {
 				}
 				if(param[0].equals("CONNECT")){
 					if(param.length == 2){
+						if(!checkNameClient(param[1])) // Nom deja utilise
+							return;
 						break;
 					}	
 					out.println("ERROR/Nombre d'arguments");
@@ -77,6 +79,8 @@ public class Service extends Thread {
 					}
 					else {
 						if(serv.register(param[1], param[2])){ 
+							if(!checkNameClient(param[1])) // Nom deja utilise
+								return;
 							break;
 						}
 						else {
@@ -94,7 +98,6 @@ public class Service extends Thread {
 						if(serv.login(param[1], param[2])) {
 							break;
 						}
-
 						else {
 							out.println("ERROR/Login. Mot de passe invalide ou compte inexistant");
 							out.flush();
@@ -106,10 +109,11 @@ public class Service extends Thread {
 			}
 			System.out.println("Nouvelle connexion");
 			start = true;
-
-			if(!checkNameClient(param[1])) // Nom deja utilise
-				return;
-
+			
+			nomClient = param[1];
+			serv.addConnectedUser(nomClient);
+			isConnected = true;
+			
 			out.println("WELCOME/" + nomClient);
 			out.flush();
 			out.println("AUDIO_PORT/2015/");
@@ -208,14 +212,12 @@ public class Service extends Thread {
 
 	public boolean checkNameClient(String n){
 		if(!serv.checkNameClient(n)){
-			out.println("ACCESSDENIED. Reconnectez-vous avec un autre nom.");
+			out.println("ACCESSDENIED/Reconnectez-vous avec un autre nom.");
 			out.flush();
 			disconnectUser();
 			return false;
 		}
-		nomClient = n;
-		serv.addConnectedUser(nomClient);
-		isConnected = true;
+
 		return true;
 	}
 
