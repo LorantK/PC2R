@@ -22,7 +22,6 @@ public class Service extends Thread {
 	private boolean start = false;
 	private boolean fullSession = false;
 	private boolean proprietaire = false;
-	private boolean spectator = false;
 	private boolean isConnected = false;
 	private boolean jamConnected = false;
 
@@ -64,6 +63,8 @@ public class Service extends Thread {
 				}
 				if(param[0].equals("CONNECT")){
 					if(param.length == 2){
+						if(!checkNameClient(param[1])) // Nom deja utilise
+							return;
 						break;
 					}	
 					out.println("ERROR/Nombre d'arguments");
@@ -76,6 +77,7 @@ public class Service extends Thread {
 						out.flush();
 					}
 					else {
+						if(!checkNameClient(param[1])) // Nom deja utilise
 						if(serv.register(param[1], param[2])){ 
 							break;
 						}
@@ -99,16 +101,13 @@ public class Service extends Thread {
 							out.println("ERROR/Login. Mot de passe invalide ou compte inexistant");
 							out.flush();
 						}
-					}
+					}	
 					out.println("ERROR/Commande Invalide. Entrez une commande pour vous connecter ou vous deconnecter");
 					out.flush();
 				}
 			}
 			System.out.println("Nouvelle connexion");
 			start = true;
-
-			if(!checkNameClient(param[1])) // Nom deja utilise
-				return;
 
 			out.println("WELCOME/" + nomClient);
 			out.flush();
@@ -210,7 +209,6 @@ public class Service extends Thread {
 		if(!serv.checkNameClient(n)){
 			out.println("ACCESSDENIED. Reconnectez-vous avec un autre nom.");
 			out.flush();
-			disconnectUser();
 			return false;
 		}
 		nomClient = n;
@@ -232,7 +230,7 @@ public class Service extends Thread {
 	}
 
 	/**
-	 * Déconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
+	 * Deconnecte l'utilisateur et signifie a� tous les clients connectés la deconnexion de USER (COMMANDE EXITED)
 	 */
 	public void disconnectUser(){
 		try{
