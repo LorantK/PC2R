@@ -49,13 +49,19 @@ let majUsers l =
 let bpm = ref 60;;
 let nbUsers = ref 0;;
 let co = ref false;;
+let config = ref false;;
+let cNb = Condition.create ();;
+let mNb = Mutex.create ();;
 
-class virtual client serv p c =
+let cCf = Condition.create ();;
+let mCf = Mutex.create ();;
+
+
+class virtual client serv p  =
 object(s)
   val sock = ThreadUnix.socket Unix.PF_INET Unix.SOCK_STREAM 0;
   val port_num = p;
   val server = serv;
-  val user = c;
   method start() =
     let host = Unix.gethostbyname server in
     let h_addr = host.Unix.h_addr_list.(0) in
@@ -68,16 +74,14 @@ object(s)
 
 end;;
 
-class client_maj s p c =
+class client_maj s p  =
 object(this)
-  inherit client s p c
+  inherit client s p 
 
   method connect s sa =
     ignore (window#connect#destroy ~callback:GMain.Main.quit);
     ignore (entry#connect#activate ~callback:(fun() -> this#send (s,sa)));
-    (*let si = "CONNECT/"^c^"\n" in
-    ignore (ThreadUnix.write s si 0 (String.length si));
-    *)
+    
     let t1 = Thread.create this#receive (s,sa) in
     window#show();
     GMain.Main.main ();
@@ -107,20 +111,27 @@ object(this)
 	      let h_addr = host.Unix.h_addr_list.(0) in
 	      let sock_addr = Unix.ADDR_INET(h_addr,(int_of_string port)) in
 	      Unix.connect sock sock_addr;
+	      let t1 = Thread.create this#sendAudio sock in ()
 	    |_->()
 	  end
 	|"CONNECTED" ->
+	  Mutex.lock mNb;
 	  nbUsers := !nbUsers+1;
+	  Condition.signal cNb;
+	  Mutex.unlock mNb;
 	  let str = (List.hd (List.tl l))^" vient de se connecter" in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
-	  let t1 = Thread.create this#sendAudio sock in ()
 	|"EXITED"->
 	  nbUsers := !nbUsers-1;
 	  let str = (List.hd (List.tl l))^" vient de se deconnecter" in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
 	|"CURRENT_SESSION" ->
+	  Mutex.lock mCf;
+	  config := true;
+	  Condition.signal cCf;
+	  Mutex.unlock mCf;
 	  let str = "Parametres de la jam : style ="^(List.hd (List.tl l))^" bpm="^ (List.hd (List.tl (List.tl l)))^" nbUsers="^ (List.hd (List.tl (List.tl (List.tl l)))) in
 	  hist := !hist^"\n"^str;
 	  textviewChat#buffer#set_text !hist;
@@ -169,32 +180,41 @@ object(this)
     let tick = ref 0 in
     let time =  ((60.0/. (float_of_int !bpm))) in
     while true do
-      if !nbUsers > 1 then
+      Mutex.lock mNb;
+      if !nbUsers < 1 then
 	begin
-	  (Printf.printf "nb : %s\n" (string_of_int !nbUsers)); 
-	  if SoundRecorder.is_available () then
-	    begin
-	      let recorder = new sound_buffer_recorder in
-	      recorder#start();
-	      let t = Sys.time() in
-	      let t2 = ref (Sys.time()) in
-	      while (!t2 -. t) < time do
-		t2 := Sys.time()
-	      done;
-	      recorder#stop;
-	      
-	      let buffer = recorder#get_buffer in
-	      let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^ (Marshal.to_bytes buffer [Marshal.Closures]) in
-	      Printf.printf "%s \n" str;
-	      ignore (ThreadUnix.write s str 0 (String.length str));
+	  Condition.wait cNb mNb;
+	  Mutex.unlock mNb;
+	  Mutex.lock mCf;
+	  if !config = false then
+	    Condition.wait cCf mCf;
+	  Mutex.unlock mCf;
+	  begin
+	    (Printf.printf "nb : %s\n" (string_of_int !nbUsers)); 
+	    if SoundRecorder.is_available () then
+	      begin
+		let recorder = new sound_buffer_recorder in
+		recorder#start();
+		let t = Sys.time() in
+		let t2 = ref (Sys.time()) in
+		while (!t2 -. t) < time do
+		  t2 := Sys.time()
+		done;
+		recorder#stop;
+		
+		let buffer = recorder#get_buffer in
+		let str = "AUDIO_CHUNK/"^(string_of_int !tick)^"/"^ (Marshal.to_bytes buffer [Marshal.Closures]) in
+		Printf.printf "%s \n" str;
+		ignore (ThreadUnix.write s str 0 (String.length str));
 	      tick := !tick +1;
-	    end
+	      end
+	  end
 	end
       else
-      Thread.delay 1.;
+	Thread.delay 1.;
     done
-	   
-	   
+      
+      
 	   
   method send arg =
     let (s,sa) = arg in
@@ -247,13 +267,12 @@ end;;
 
 
 let main() =
-  if Array.length Sys.argv < 3
-  then Printf.printf "usage : server port client\n"
+  if Array.length Sys.argv < 2
+  then Printf.printf "usage : server port \n"
   else 
 
     let port = int_of_string(Sys.argv.(2))
-    and s = (Sys.argv.(1)) 
-    and c = (Sys.argv.(3)) in
-    (new client_maj s port c)#start();;
+    and s = (Sys.argv.(1))  in
+    (new client_maj s port )#start();;
 
 main();;
