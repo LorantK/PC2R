@@ -57,12 +57,11 @@ let cCf = Condition.create ();;
 let mCf = Mutex.create ();;
 
 
-class virtual client serv p c =
+class virtual client serv p  =
 object(s)
   val sock = ThreadUnix.socket Unix.PF_INET Unix.SOCK_STREAM 0;
   val port_num = p;
   val server = serv;
-  val user = c;
   method start() =
     let host = Unix.gethostbyname server in
     let h_addr = host.Unix.h_addr_list.(0) in
@@ -75,16 +74,14 @@ object(s)
 
 end;;
 
-class client_maj s p c =
+class client_maj s p  =
 object(this)
-  inherit client s p c
+  inherit client s p 
 
   method connect s sa =
     ignore (window#connect#destroy ~callback:GMain.Main.quit);
     ignore (entry#connect#activate ~callback:(fun() -> this#send (s,sa)));
-    (*let si = "CONNECT/"^c^"\n" in
-    ignore (ThreadUnix.write s si 0 (String.length si));
-    *)
+    
     let t1 = Thread.create this#receive (s,sa) in
     window#show();
     GMain.Main.main ();
@@ -270,13 +267,12 @@ end;;
 
 
 let main() =
-  if Array.length Sys.argv < 3
-  then Printf.printf "usage : server port client\n"
+  if Array.length Sys.argv < 2
+  then Printf.printf "usage : server port \n"
   else 
 
     let port = int_of_string(Sys.argv.(2))
-    and s = (Sys.argv.(1)) 
-    and c = (Sys.argv.(3)) in
-    (new client_maj s port c)#start();;
+    and s = (Sys.argv.(1))  in
+    (new client_maj s port )#start();;
 
 main();;
