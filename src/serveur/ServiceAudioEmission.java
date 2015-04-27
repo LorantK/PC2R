@@ -7,7 +7,7 @@ import java.net.Socket;
 import java.util.Arrays;
 
 /**
- * Mixe les buffers et les envoie
+ * Mixe les buffers et envoie le buffer mixe au client
  * @author Eric
  *
  */
@@ -15,7 +15,7 @@ public class ServiceAudioEmission extends Thread {
 	protected String nomClient;
 	protected PrintStream outAudio;
 	protected Server s;
-	protected int tick;
+	protected int tick; // numero du tick
 	protected int numero;
 
 	public ServiceAudioEmission(PrintStream outAudio, String nomClient, Server s, int tick, int numero){
@@ -47,6 +47,7 @@ public class ServiceAudioEmission extends Thread {
 			MaxTailleBuff = s.getTabBuffer().get(tick).get(i).length;
 		}
 
+		// Initialisation du buffer que l'on va envoyer
 		float[] BufferMixe = new float[MaxTailleBuff];
 		for(int i = 0; i < MaxTailleBuff; i++){
 			BufferMixe[i] = 0;
@@ -54,7 +55,7 @@ public class ServiceAudioEmission extends Thread {
 
 		// On mix
 		for(int i = 0; i < s.getTabBuffer().get(tick).size(); i++){
-			if(i == numero) 
+			if(i == numero) // Pour ne pas mixer son propre buffer
 				continue;
 
 			boolean depassement= false;

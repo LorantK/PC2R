@@ -14,7 +14,7 @@ import java.util.BitSet;
  */
 public class ServiceAudioReception extends Thread{
 	protected Socket canalAudio;
-	protected String nomClient;
+	protected String nomClient; // Nom du client
 	protected DataInputStream inAudio;
 	protected PrintStream outAudio;
 	protected Server s;
